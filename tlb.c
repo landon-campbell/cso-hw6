@@ -21,6 +21,7 @@ static TLBSet tlb_set_array[TLB_SETS];
 
 // tlb_clear invalidates all cache lines in the TLB
 void tlb_clear() {
+
     for (int set_index = 0; set_index < TLB_SETS; set_index++) {
         // Un-validate all ways in the set
         for (int way_index = 0; way_index < TLB_WAYS; way_index++) {
@@ -34,6 +35,7 @@ void tlb_clear() {
 
 // tlb_peek returns 0 if the virtual address does not have a valid mapping in the TLB.
 int tlb_peek(size_t virtual_address) {
+
     // Extract the page offset, virtual page number (VPN), set index, and tag from the virtual address
     size_t page_offset = virtual_address & ((1UL << POBITS) - 1);
     size_t virtual_page_number = virtual_address >> POBITS;
@@ -59,6 +61,7 @@ int tlb_peek(size_t virtual_address) {
 
 // tlb_translate returns the physical address associated with the virtual address
 size_t tlb_translate(size_t virtual_address) {
+
     // Extract the page offset, virtual page number (VPN), set index, and tag from the virtual address
     size_t page_offset = virtual_address & ((1UL << POBITS) - 1);
     size_t virtual_page_number = virtual_address >> POBITS;
@@ -102,24 +105,29 @@ size_t tlb_translate(size_t virtual_address) {
         // Return the physical address
         size_t physical_address_page_start = (tlb_set_ptr->ways[hit_way_index].physical_page_number) << POBITS;
         return physical_address_page_start | page_offset;
+
     } else { // Cache miss
         // Translate the virtual address
         size_t physical_address_page_start = translate(virtual_address_page_start);
+
         // If the translation failed, return -1
         if (physical_address_page_start == (size_t)-1) {
             // Do not update TLB
             return -1;
         }
+
         // Extract the physical page number
         size_t physical_page_number = physical_address_page_start >> POBITS;
 
         // Find an empty way or the LRU way to replace
         int replace_way_index = -1;
         int maximum_lru_counter = 0;
+
         // Find an empty way or the LRU way
         for (int way_index = 0; way_index < TLB_WAYS; way_index++) {
             // Get the entry
             TLBEntry *tlb_entry_ptr = &tlb_set_ptr->ways[way_index];
+            
             // If the entry is not valid, save the index
             if (!tlb_entry_ptr->valid_bit) {
                 replace_way_index = way_index;
